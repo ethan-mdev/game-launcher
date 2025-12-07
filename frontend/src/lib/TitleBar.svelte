@@ -1,9 +1,8 @@
 <script lang="ts">
-  import { WindowMinimise, WindowToggleMaximise, Quit } from '../../wailsjs/runtime/runtime'
+  import { WindowMinimise, Quit } from '../../wailsjs/runtime/runtime'
 </script>
 
-<div class="flex items-center justify-between px-5 py-3 bg-neutral-950 border-b border-neutral-800" style="--wails-draggable: drag">
-  <div class="px-3 text-white text-sm font-medium">Game Launcher</div>
+<div class="flex items-center justify-end px-5 py-3 bg-neutral-950 border-b border-neutral-800" style="--wails-draggable: drag">
   
   <div class="flex" style="--wails-draggable: no-drag">
     <button 

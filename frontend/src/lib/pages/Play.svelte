@@ -1,26 +1,88 @@
 <script lang="ts">
+  import AuthForm from '../components/AuthForm.svelte';
+  import UserBar from '../components/UserBar.svelte';
+  import CardFeed from '../components/CardFeed.svelte';
+  import PlayBar from '../components/PlayBar.svelte';
+
+  let username = '';
+  let password = '';
+  let rememberMe = false;
+  let isLoggedIn = false;
+
+  // Patching state
+  let isPatchComplete = true;
+  let patchProgress = 100;
+  let patchStatus = 'Ready to play';
+  let downloadSpeed = '12.5 MB/s';
+
+  const patchNotes = [
+    {
+      title: 'v1.3.1 — Crystalbound',
+      date: 'December 5, 2025',
+      featured: true,
+      content: [
+        'New emerald dungeon with scaling mechanics',
+        'Forest Trials rotation begins weekly',
+        'New crystalline cosmetics + wings',
+      ],
+    },
+    {
+      title: 'v1.3.0 — The Awakening',
+      date: 'November 20, 2025',
+      content: [
+        'New zone: Crystal Caverns',
+        'Level cap increased to 60',
+        'New raid: Heart of Stone',
+      ],
+    },
+  ];
+
+  function handleLogin() {
+    // Add actual login logic here
+    isLoggedIn = true;
+  }
+
+  function handleRegister() {
+    // Add actual register logic here
+    console.log('Registering...');
+  }
+
+  function logout() {
+    isLoggedIn = false;
+    username = '';
+    password = '';
+  }
+
+  function play() {
+    console.log('Launching game...');
+  }
 </script>
 
 <div class="flex flex-col h-full">
-  <!-- Hero image/artwork area -->
-  <div class="flex-1 relative bg-gradient-to-b from-neutral-800 to-neutral-950">
-    <div class="absolute inset-0 flex items-center justify-center">
-      <span class="text-neutral-700 text-lg">Game Artwork Here</span>
-    </div>
-    
-    <!-- Overlay content at bottom -->
-    <div class="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-neutral-950 via-neutral-950/90 to-transparent">
-      <div class="flex items-end justify-between">
-        <div class="max-w-md">
-          <span class="text-yellow-500 text-sm font-medium">LATEST UPDATE</span>
-          <h2 class="text-white text-2xl font-bold mt-1">Patch 1.3.1 — Crystalbound</h2>
-          <p class="text-neutral-400 mt-2">New dungeon, balance changes, and more.</p>
-        </div>
-        
-        <button class="px-12 py-4 bg-gradient-to-r from-green-500 to-green-600 text-white text-lg font-bold rounded-lg hover:from-green-400 hover:to-green-500 transition">
-          ▶ Play
-        </button>
-      </div>
-    </div>
+  {#if isLoggedIn}
+    <UserBar {username} on:logout={logout} />
+  {/if}
+
+  <div class="flex-1 overflow-y-auto no-scrollbar">
+    {#if !isLoggedIn}
+      <AuthForm 
+        bind:username 
+        bind:password
+        on:login={handleLogin}
+        on:register={handleRegister}
+      />
+    {:else}
+      <CardFeed title="Patch Notes" items={patchNotes} />
+    {/if}
   </div>
+
+  {#if isLoggedIn}
+    <PlayBar 
+      {isPatchComplete} 
+      {patchProgress} 
+      {patchStatus} 
+      {downloadSpeed}
+      on:play={play} 
+    />
+  {/if}
 </div>

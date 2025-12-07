@@ -11,9 +11,12 @@
   ];
 </script>
 
-<div class="p-4 flex flex-col gap-6 max-w-2xl">
+<div class="p-6 flex flex-col gap-6">
   <div>
+    <div class="flex items-center justify-between mb-1">
     <h1 class="text-white text-2xl font-bold">Settings</h1>
+    <button class="px-4 py-1 bg-yellow-500 text-black font-semibold rounded-lg hover:bg-yellow-600 transition">Save</button>
+    </div>
     <p class="text-neutral-500 text-sm mt-1">Configure your game preferences</p>
   </div>
   

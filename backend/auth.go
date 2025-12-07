@@ -1,0 +1,95 @@
+package backend
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"net/http"
+)
+
+type AuthService struct{}
+
+func NewAuthService() *AuthService {
+	return &AuthService{}
+}
+
+func (a *AuthService) Login(username, password string) (*AuthResponse, error) {
+	req := struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}{
+		Username: username,
+		Password: password,
+	}
+
+	body, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := http.Post("http://localhost:8080/login", "application/json", bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// Handle expected error cases
+	if resp.StatusCode == http.StatusUnauthorized {
+		return nil, fmt.Errorf("invalid username or password")
+	}
+	if resp.StatusCode == http.StatusBadRequest {
+		return nil, fmt.Errorf("invalid request sent")
+	}
+	if resp.StatusCode >= 500 {
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	var respData AuthResponse
+
+	if err := json.NewDecoder(resp.Body).Decode(&respData); err != nil {
+		return nil, err
+	}
+
+	return &respData, nil
+}
+
+func (a *AuthService) Logout(refreshToken string) error {
+	body, _ := json.Marshal(map[string]string{
+		"refresh_token": refreshToken,
+	})
+
+	resp, err := http.Post("http://localhost:8080/logout", "application/json", bytes.NewBuffer(body))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to logout")
+	}
+
+	return nil
+}
+
+func (a *AuthService) Refresh(refreshToken string) (*AuthResponse, error) {
+	body, _ := json.Marshal(map[string]string{
+		"refresh_token": refreshToken,
+	})
+
+	resp, err := http.Post("http://localhost:8080/refresh", "application/json", bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var auth AuthResponse
+	if err := json.NewDecoder(resp.Body).Decode(&auth); err != nil {
+		return nil, err
+	}
+
+	return &auth, nil
+}
+
+func (a *AuthService) Register(username, password, email string) (*AuthResponse, error) {
+	return &AuthResponse{}, nil
+}
