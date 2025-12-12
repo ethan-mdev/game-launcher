@@ -2,6 +2,8 @@ package backend
 
 import (
 	"context"
+	"os"
+	"os/exec"
 )
 
 // App struct
@@ -18,4 +20,10 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
+}
+
+// StartGame launches the game with the provided credentials
+func (a *App) StartGame(username, password string) {
+	exec.Command(".\\LauncherUpdater.exe", username, password).Output()
+	os.Exit(0)
 }

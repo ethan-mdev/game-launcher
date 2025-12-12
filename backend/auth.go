@@ -90,6 +90,85 @@ func (a *AuthService) Refresh(refreshToken string) (*AuthResponse, error) {
 	return &auth, nil
 }
 
-func (a *AuthService) Register(username, password, email string) (*AuthResponse, error) {
-	return &AuthResponse{}, nil
+func (a *AuthService) Register(username, email, password string) (*AuthResponse, error) {
+	req := struct {
+		Username string `json:"username"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}{
+		Username: username,
+		Email:    email,
+		Password: password,
+	}
+
+	body, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := http.Post("http://localhost:8080/register", "application/json", bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusBadRequest {
+		return nil, fmt.Errorf("invalid request sent")
+	}
+	if resp.StatusCode >= 500 {
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	var respData AuthResponse
+
+	if err := json.NewDecoder(resp.Body).Decode(&respData); err != nil {
+		return nil, err
+	}
+
+	return &respData, nil
+}
+
+func (a *AuthService) GetProfile(userID string) (*UserProfile, error) {
+	resp, err := http.Get(fmt.Sprintf("http://localhost:8080/profile/%s", userID))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get profile")
+	}
+
+	var profile UserProfile
+	if err := json.NewDecoder(resp.Body).Decode(&profile); err != nil {
+		return nil, err
+	}
+
+	return &profile, nil
+}
+
+func (a *AuthService) UpdateProfileImage(accessToken, profileImage string) error {
+	body, _ := json.Marshal(map[string]string{
+		"profile_image": profileImage,
+	})
+
+	req, err := http.NewRequest("PUT", "http://localhost:8080/profile", bytes.NewBuffer(body))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to update profile image")
+	}
+
+	return nil
 }

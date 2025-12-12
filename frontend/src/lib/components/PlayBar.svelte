@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import { StartGame } from '../../../wailsjs/go/backend/App';
   
   const dispatch = createEventDispatcher();
   
@@ -8,6 +9,10 @@
   export let patchStatus = 'Ready to play';
   export let downloadSpeed = '';
   export let version = 'v1.0.0';
+
+  async function handlePlay() {
+    await StartGame('Ember', 'test');
+  }
 </script>
 
 <div class="p-6 bg-gradient-to-t from-neutral-900 to-transparent">
@@ -39,7 +44,7 @@
 
     <!-- Play Button -->
     <button
-      on:click={() => dispatch('play')}
+      on:click={handlePlay}
       disabled={!isPatchComplete}
       class="px-12 py-4 text-lg font-bold rounded-xl transition-all duration-200
         {isPatchComplete
