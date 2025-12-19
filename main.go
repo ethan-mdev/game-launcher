@@ -18,6 +18,7 @@ func main() {
 	// Create an instance of the app structure
 	app := backend.NewApp()
 	authService := backend.NewAuthService()
+	patchingService := backend.NewPatchingService(app, ".\\", "http://localhost:8081")
 
 	// Create application with options
 	err := wails.Run(&options.App{
@@ -40,6 +41,7 @@ func main() {
 		Bind: []interface{}{
 			app,
 			authService,
+			patchingService,
 		},
 	})
 
