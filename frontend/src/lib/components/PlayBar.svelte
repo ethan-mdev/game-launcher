@@ -4,15 +4,12 @@
   
   const dispatch = createEventDispatcher();
   
-  export let isPatchComplete = true;
-  export let patchProgress = 100;
-  export let patchStatus = 'Ready to play';
-  export let downloadSpeed = '';
-  export let version = 'v1.0.0';
+  export let isPatchComplete: boolean;
+  export let patchProgress: number;
+  export let patchStatus: string;
+  export let downloadSpeed: string;
+  export let version: string;
 
-  async function handlePlay() {
-    await StartGame('Ember', 'test');
-  }
 </script>
 
 <div class="p-6 bg-gradient-to-t from-neutral-900 to-transparent">
@@ -44,8 +41,8 @@
 
     <!-- Play Button -->
     <button
-      on:click={handlePlay}
       disabled={!isPatchComplete}
+      on:click={() => dispatch('play')}
       class="px-12 py-4 text-lg font-bold rounded-xl transition-all duration-200
         {isPatchComplete
           ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:scale-105 hover:shadow-xl hover:shadow-green-500/30'

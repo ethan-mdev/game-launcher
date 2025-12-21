@@ -1,16 +1,32 @@
 <script lang="ts">
+  import { onMount, onDestroy } from 'svelte';
   import AuthForm from '../components/AuthForm.svelte';
   import UserBar from '../components/UserBar.svelte';
   import CardFeed from '../components/CardFeed.svelte';
   import PlayBar from '../components/PlayBar.svelte';
   import { auth } from '../stores/auth';
+  import { patching, isPatchComplete, patchStatusText } from '../stores/patching';
   import { Logout } from '../../../wailsjs/go/backend/AuthService';
+  import { StartGame } from '../../../wailsjs/go/backend/App';
 
-  // Patching state
-  let isPatchComplete = true;
-  let patchProgress = 100;
-  let patchStatus = 'Ready to play';
-  let downloadSpeed = '12.5 MB/s';
+  // Setup event listeners when component mounts
+  onMount(() => {
+    patching.setupEventListeners();
+    
+    // Check for updates if already logged in
+    if ($auth.isLoggedIn && $auth.accessToken) {
+      patching.checkAndDownload($auth.accessToken);
+    }
+  });
+
+  onDestroy(() => {
+    patching.cleanupEventListeners();
+  });
+
+  // React to login state changes
+  $: if ($auth.isLoggedIn && $auth.accessToken) {
+    patching.checkAndDownload($auth.accessToken);
+  }
 
   const patchNotes = [
     {
@@ -45,7 +61,11 @@
   }
 
   function play() {
-    console.log('Launching game...');
+    if ($isPatchComplete) {
+      // Pass username and access token to the game launcher
+      // The game should authenticate using the token, not password
+      StartGame($auth.username, $auth.accessToken);
+    }
   }
 </script>
 
@@ -64,11 +84,11 @@
 
   {#if $auth.isLoggedIn}
     <PlayBar 
-      {isPatchComplete} 
-      {patchProgress} 
-      {patchStatus} 
-      {downloadSpeed}
-      version="v1.3.1"
+      isPatchComplete={$isPatchComplete} 
+      patchProgress={$patching.progress} 
+      patchStatus={$patchStatusText} 
+      downloadSpeed={$patching.downloadSpeed}
+      version={$patching.version}
       on:play={play} 
     />
   {/if}
