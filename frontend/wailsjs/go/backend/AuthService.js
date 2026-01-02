@@ -29,3 +29,7 @@ export function Register(arg1, arg2, arg3) {
 export function UpdateProfileImage(arg1, arg2) {
   return window['go']['backend']['AuthService']['UpdateProfileImage'](arg1, arg2);
 }
+
+export function VerifyGameAccount(arg1) {
+  return window['go']['backend']['AuthService']['VerifyGameAccount'](arg1);
+}

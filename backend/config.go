@@ -1,6 +1,6 @@
 package backend
 
 const (
-	AuthBaseURL     = "http://localhost:8080"
+	AuthBaseURL     = "http://10.0.0.97:8080"
 	PatchingBaseURL = "http://localhost:8081"
 )

@@ -78,6 +78,12 @@ func (p *PatchingService) CheckForUpdates(accessToken string) (*UpdateCheckResul
 	if err != nil {
 		return nil, err
 	}
+	f, _ := os.OpenFile("debug.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if f != nil {
+		f.WriteString(fmt.Sprintf("Patching response status: %d\n", resp.StatusCode))
+		f.Close()
+	}
+
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusNotModified {
