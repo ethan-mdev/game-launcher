@@ -27,13 +27,12 @@ func (a *AuthService) Login(username, password string) (*AuthResponse, error) {
 		return nil, err
 	}
 
-	resp, err := http.Post("http://localhost:8080/login", "application/json", bytes.NewBuffer(body))
+	resp, err := http.Post(AuthBaseURL+"/login", "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	// Handle expected error cases
 	if resp.StatusCode == http.StatusUnauthorized {
 		return nil, fmt.Errorf("invalid username or password")
 	}
@@ -45,7 +44,6 @@ func (a *AuthService) Login(username, password string) (*AuthResponse, error) {
 	}
 
 	var respData AuthResponse
-
 	if err := json.NewDecoder(resp.Body).Decode(&respData); err != nil {
 		return nil, err
 	}
@@ -58,7 +56,7 @@ func (a *AuthService) Logout(refreshToken string) error {
 		"refresh_token": refreshToken,
 	})
 
-	resp, err := http.Post("http://localhost:8080/logout", "application/json", bytes.NewBuffer(body))
+	resp, err := http.Post(AuthBaseURL+"/logout", "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
@@ -76,7 +74,7 @@ func (a *AuthService) Refresh(refreshToken string) (*AuthResponse, error) {
 		"refresh_token": refreshToken,
 	})
 
-	resp, err := http.Post("http://localhost:8080/refresh", "application/json", bytes.NewBuffer(body))
+	resp, err := http.Post(AuthBaseURL+"/refresh", "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +104,7 @@ func (a *AuthService) Register(username, email, password string) (*AuthResponse,
 		return nil, err
 	}
 
-	resp, err := http.Post("http://localhost:8080/register", "application/json", bytes.NewBuffer(body))
+	resp, err := http.Post(AuthBaseURL+"/register", "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +118,6 @@ func (a *AuthService) Register(username, email, password string) (*AuthResponse,
 	}
 
 	var respData AuthResponse
-
 	if err := json.NewDecoder(resp.Body).Decode(&respData); err != nil {
 		return nil, err
 	}
@@ -129,7 +126,7 @@ func (a *AuthService) Register(username, email, password string) (*AuthResponse,
 }
 
 func (a *AuthService) GetProfile(userID string) (*UserProfile, error) {
-	resp, err := http.Get(fmt.Sprintf("http://localhost:8080/profile/%s", userID))
+	resp, err := http.Get(fmt.Sprintf("%s/profile/%s", AuthBaseURL, userID))
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +149,7 @@ func (a *AuthService) UpdateProfileImage(accessToken, profileImage string) error
 		"profile_image": profileImage,
 	})
 
-	req, err := http.NewRequest("PUT", "http://localhost:8080/profile", bytes.NewBuffer(body))
+	req, err := http.NewRequest("PUT", AuthBaseURL+"/profile", bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
@@ -171,4 +168,37 @@ func (a *AuthService) UpdateProfileImage(accessToken, profileImage string) error
 	}
 
 	return nil
+}
+
+func (a *AuthService) GetGameCredentials(accessToken string) (*GameCredentials, error) {
+	req, err := http.NewRequest("GET", AuthBaseURL+"/game/credentials", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// Handle the "not linked" case - return nil without error so frontend can handle it
+	if resp.StatusCode == http.StatusForbidden {
+		var errResp GameCredentialsError
+		json.NewDecoder(resp.Body).Decode(&errResp)
+		return nil, fmt.Errorf(errResp.Error)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to fetch game credentials")
+	}
+
+	var creds GameCredentials
+	if err := json.NewDecoder(resp.Body).Decode(&creds); err != nil {
+		return nil, err
+	}
+
+	return &creds, nil
 }

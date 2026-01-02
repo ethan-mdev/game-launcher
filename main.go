@@ -22,7 +22,7 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:     "game-launcher",
+		Title:     "Lumina Launcher",
 		Width:     1100,
 		Height:    700,
 		MinWidth:  900,

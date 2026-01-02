@@ -44,3 +44,14 @@ type VerifyResult struct {
 	Mismatches []string `json:"mismatches"`
 	Missing    []string `json:"missing"`
 }
+
+type GameCredentials struct {
+	Username      string `json:"username"`
+	ApiKey        string `json:"api_key"`
+	GameAccountID int    `json:"game_account_id"`
+}
+
+type GameCredentialsError struct {
+	Error   string `json:"error"`
+	Message string `json:"message"`
+}

@@ -9,11 +9,9 @@
   import { Logout } from '../../../wailsjs/go/backend/AuthService';
   import { StartGame } from '../../../wailsjs/go/backend/App';
 
-  // Setup event listeners when component mounts
   onMount(() => {
     patching.setupEventListeners();
     
-    // Check for updates if already logged in
     if ($auth.isLoggedIn && $auth.accessToken) {
       patching.checkAndDownload($auth.accessToken);
     }
@@ -23,7 +21,6 @@
     patching.cleanupEventListeners();
   });
 
-  // React to login state changes
   $: if ($auth.isLoggedIn && $auth.accessToken) {
     patching.checkAndDownload($auth.accessToken);
   }
@@ -52,19 +49,22 @@
       isLoggedIn: false,
       userId: '',
       username: '',
-      email: '',
       role: 'user',
       profileImage: '',
       accessToken: '',
-      refreshToken: ''
+      refreshToken: '',
+      gameApiKey: '',
+      gameLinked: false
     });
   }
 
-  function play() {
-    if ($isPatchComplete) {
-      // Pass username and access token to the game launcher
-      // The game should authenticate using the token, not password
-      StartGame($auth.username, $auth.accessToken);
+  async function play() {
+    if ($isPatchComplete && $auth.gameLinked) {
+      try {
+        await StartGame($auth.username, $auth.gameApiKey);
+      } catch (err) {
+        console.error('Failed to start game:', err);
+      }
     }
   }
 </script>
@@ -77,12 +77,29 @@
   <div class="flex-1 overflow-y-auto no-scrollbar">
     {#if !$auth.isLoggedIn}
       <AuthForm />
+    {:else if !$auth.gameLinked}
+      <!-- Account not verified prompt -->
+      <div class="h-full flex items-center justify-center p-8">
+        <div class="text-center space-y-4">
+          <h2 class="text-white text-xl font-medium">Account Not Verified</h2>
+          <p class="text-neutral-400 max-w-sm">
+            Please verify your account on the website to link your game account and start playing.
+          </p>
+          <a 
+            href="https://dashboard.ethan-mdev.com" 
+            target="_blank"
+            class="inline-block mt-4 px-6 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-semibold rounded-xl hover:opacity-90 transition"
+          >
+            Verify Account
+          </a>
+        </div>
+      </div>
     {:else}
       <CardFeed title="Patch Notes" items={patchNotes} />
     {/if}
   </div>
 
-  {#if $auth.isLoggedIn}
+  {#if $auth.isLoggedIn && $auth.gameLinked}
     <PlayBar 
       isPatchComplete={$isPatchComplete} 
       patchProgress={$patching.progress} 

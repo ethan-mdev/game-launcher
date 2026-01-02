@@ -32,6 +32,22 @@ export namespace backend {
 	        this.hash = source["hash"];
 	    }
 	}
+	export class GameCredentials {
+	    username: string;
+	    api_key: string;
+	    game_account_id: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new GameCredentials(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.username = source["username"];
+	        this.api_key = source["api_key"];
+	        this.game_account_id = source["game_account_id"];
+	    }
+	}
 	export class UpdateCheckResult {
 	    needsUpdate: boolean;
 	    currentVersion: string;

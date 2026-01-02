@@ -1,6 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
-  import { Login, Register, GetProfile } from '../../../wailsjs/go/backend/AuthService';
+  import { Login, Register, GetProfile, GetGameCredentials } from '../../../wailsjs/go/backend/AuthService';
   import { auth } from '../stores/auth';
   
   const dispatch = createEventDispatcher();
@@ -14,7 +14,6 @@
   let error = '';
   let loading = false;
 
-  // Decode JWT to get user ID (simple base64 decode of payload)
   function getUserIdFromToken(token: string): string {
     try {
       const payload = token.split('.')[1];
@@ -41,21 +40,31 @@
         response = await Login(username, password);
       }
 
-      // Get user ID from JWT token
       const userId = getUserIdFromToken(response.access_token);
-      
-      // Fetch full profile from server
       const profile = await GetProfile(userId);
+      
+      // Try to fetch game credentials
+      let gameApiKey = '';
+      let gameLinked = false;
+      try {
+        const gameCreds = await GetGameCredentials(response.access_token);
+        gameApiKey = gameCreds.api_key;
+        gameLinked = true;
+      } catch (err) {
+        // account_not_linked is expected for unverified users
+        console.log('Game account not linked:', err);
+      }
       
       auth.set({
         isLoggedIn: true,
         userId: profile.user_id,
         username: profile.username,
-        email: profile.email,
         role: profile.role,
         profileImage: profile.profile_image || '',
         accessToken: response.access_token,
-        refreshToken: response.refresh_token
+        refreshToken: response.refresh_token,
+        gameApiKey,
+        gameLinked
       });
       
       dispatch(isRegistering ? 'register' : 'login');
@@ -69,21 +78,18 @@
 
 <div class="h-full flex items-center justify-center p-8">
   <div class="w-full max-w-xs space-y-6">
-    <!-- Logo/Title -->
     <div class="text-center mb-8">
       <h1 class="text-white text-lg font-medium">
         {isRegistering ? 'Create an account' : 'Sign in to continue'}
       </h1>
     </div>
 
-    <!-- Error message -->
     {#if error}
       <div class="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-400 text-sm">
         {error}
       </div>
     {/if}
 
-    <!-- Form -->
     <div class="space-y-3">
       <input
         type="text"
