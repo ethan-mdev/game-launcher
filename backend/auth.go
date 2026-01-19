@@ -202,29 +202,3 @@ func (a *AuthService) GetGameCredentials(accessToken string) (*GameCredentials, 
 
 	return &creds, nil
 }
-
-func (a *AuthService) VerifyGameAccount(accessToken string) error {
-	req, err := http.NewRequest("POST", AuthBaseURL+"/game/verify", nil)
-	if err != nil {
-		return err
-	}
-
-	req.Header.Set("Authorization", "Bearer "+accessToken)
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		var errResp map[string]string
-		json.NewDecoder(resp.Body).Decode(&errResp)
-		if msg, ok := errResp["message"]; ok {
-			return fmt.Errorf(msg)
-		}
-		return fmt.Errorf("failed to verify account")
-	}
-
-	return nil
-}

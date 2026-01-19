@@ -6,12 +6,8 @@
   import PlayBar from '../components/PlayBar.svelte';
   import { auth } from '../stores/auth';
   import { patching, isPatchComplete, patchStatusText } from '../stores/patching';
-  import { Logout, GetGameCredentials } from '../../../wailsjs/go/backend/AuthService';
+  import { Logout } from '../../../wailsjs/go/backend/AuthService';
   import { StartGame } from '../../../wailsjs/go/backend/App';
-  import { VerifyGameAccount } from '../../../wailsjs/go/backend/AuthService';
-
-  let verifying = false;
-  let verifyError = '';
 
   onMount(() => {
     patching.setupEventListeners();
@@ -62,28 +58,6 @@
     });
   }
 
-  async function verify() {
-    verifying = true;
-    verifyError = '';
-    
-    try {
-      await VerifyGameAccount($auth.accessToken);
-      
-      // Fetch the new credentials
-      const creds = await GetGameCredentials($auth.accessToken);
-      
-      auth.update(a => ({
-        ...a,
-        gameApiKey: creds.api_key,
-        gameLinked: true
-      }));
-    } catch (err) {
-      verifyError = err as string;
-    } finally {
-      verifying = false;
-    }
-  }
-
   async function play() {
     if ($isPatchComplete && $auth.gameLinked) {
       try {
@@ -109,18 +83,8 @@
           <div class="text-yellow-500 text-5xl mb-4">⚠️</div>
           <h2 class="text-white text-xl font-medium">Account Not Verified</h2>
           <p class="text-neutral-400 max-w-sm">
-            Verify your account to create your game account and start playing.
+            Verify your account on Discord to create your game account and start playing.
           </p>
-          {#if verifyError}
-            <p class="text-red-400 text-sm">{verifyError}</p>
-          {/if}
-          <button 
-            on:click={verify}
-            disabled={verifying}
-            class="inline-block mt-4 px-6 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-semibold rounded-xl hover:opacity-90 transition disabled:opacity-50"
-          >
-            {verifying ? 'Verifying...' : 'Verify Account'}
-          </button>
         </div>
       </div>
     {:else}

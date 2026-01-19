@@ -15,5 +15,3 @@ export function Refresh(arg1:string):Promise<backend.AuthResponse>;
 export function Register(arg1:string,arg2:string,arg3:string):Promise<backend.AuthResponse>;
 
 export function UpdateProfileImage(arg1:string,arg2:string):Promise<void>;
-
-export function VerifyGameAccount(arg1:string):Promise<void>;
